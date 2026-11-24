@@ -39,4 +39,17 @@
     <InternalsVisibleTo Include="EndfieldMonitor.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\LICENSE;..\THIRD-PARTY-NOTICES.md">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="..\licenses\**\*.txt">
+      <Link>licenses\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>
