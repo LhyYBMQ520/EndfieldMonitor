@@ -73,7 +73,7 @@ dotnet run --project .\src\EndfieldMonitor.csproj
 
 也可以直接在 Visual Studio 中打开解决方案进行调试与发布。
 
-如要公开分发构建产物，请先核对实际随包组件，并将项目许可证和第三方组件所需的许可证、声明及对应源码获取方式一并提供。不要只分发 EXE 而省略这些文件。
+使用 Visual Studio 的 `FolderProfile` 发布时，项目许可证、第三方声明和上游许可文件会自动复制到发布目录。公开分发时请保留这些文件，并根据实际随包组件核对 [第三方声明](THIRD-PARTY-NOTICES.md) 中的源码获取方式和分发要求。
 
 | 位置 | 内容 |
 | --- | --- |
