@@ -1,0 +1,123 @@
+<Window x:Class="EndfieldMonitor.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:EndfieldMonitor.Controls"
+        xmlns:v="clr-namespace:EndfieldMonitor.Views"
+        Title="EndfieldMonitor"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        WindowStartupLocation="Manual"
+        UseLayoutRounding="False"
+        SnapsToDevicePixels="False"
+        TextOptions.TextFormattingMode="Ideal">
+
+    <Grid x:Name="Root">
+        <!-- 仪表主体：统一的 1065×1055 设计坐标系，通过 Viewbox 适配窗口尺寸 -->
+        <Viewbox Stretch="Uniform">
+            <Canvas x:Name="GaugeViewport" ClipToBounds="True">
+                <Canvas x:Name="Design" Width="1065" Height="1055">
+
+                    <c:DrawingElement x:Name="TracksLayer" />
+
+                    <!-- 两条黑色阶梯弧带：弧带与端部小字作为整体绕仪表圆心旋转 -->
+                    <c:DrawingElement x:Name="TopBandLayer">
+                        <c:DrawingElement.RenderTransform>
+                            <RotateTransform x:Name="TopBandRotate" CenterX="526" CenterY="545" />
+                        </c:DrawingElement.RenderTransform>
+                    </c:DrawingElement>
+                    <c:DrawingElement x:Name="BottomBandLayer">
+                        <c:DrawingElement.RenderTransform>
+                            <RotateTransform x:Name="BottomBandRotate" CenterX="526" CenterY="545" />
+                        </c:DrawingElement.RenderTransform>
+                    </c:DrawingElement>
+
+                    <c:DrawingElement x:Name="CoreLayer" />
+                    <c:ChargeRing x:Name="ChargeRingLayer" Fraction="{Binding ChargeFraction}" />
+
+                    <c:ParticleCloud x:Name="Particles" Canvas.Left="273" Canvas.Top="292"
+                                     IsAnimating="{Binding ParticlesEnabled}" />
+
+                    <c:DrawingElement x:Name="OverlayLayer" />
+
+                    <!-- 中央读数 -->
+                    <c:SvgText x:Name="ChargeValueText" X="526" Y="558" FontSize="79" Anchor="Middle"
+                               Fill="#292929" Text="{Binding ChargeText}" />
+                    <c:SvgText X="526" Y="585" FontSize="28" Anchor="Middle" Fill="#686868" Text="/100" />
+                    <c:SvgText X="526" Y="678" FontSize="40" Anchor="Middle" Fill="#4D4D4D"
+                               Text="{Binding TimeText}"
+                               Visibility="{Binding TimeVisible, Converter={StaticResource BoolToVisibility}}" />
+                    <c:SvgText X="526" Y="710" FontSize="28" Anchor="Middle" Fill="#656565" FontWeight="Medium"
+                               FontFamily="Microsoft YaHei UI, Microsoft YaHei, Arial"
+                               MaxTextWidth="300" MinFontSize="20"
+                               Text="{Binding BatteryStatusText}" />
+
+                    <!-- 上方监控槽位（原“用电功率”） -->
+                    <c:SvgText X="855" Y="201" FontSize="28" Anchor="Middle" Fill="#333333" FontWeight="SemiBold"
+                               FontFamily="Microsoft YaHei UI, Microsoft YaHei, Arial"
+                               MaxTextWidth="164" MinFontSize="18"
+                               Text="{Binding TopSlot.Title}" />
+                    <c:SlotValueText X="753" Y="211" Anchor="End" AvailableWidth="200"
+                                     ValueText="{Binding TopSlot.Value}" UnitText="{Binding TopSlot.Unit}"
+                                     StatusText="{Binding TopSlot.Status}" IsStale="{Binding TopSlot.IsStale}" />
+                    <Rectangle x:Name="TopSlotHit" Canvas.Left="541" Canvas.Top="149" Width="402" Height="85" Fill="Transparent">
+                        <Rectangle.ToolTip>
+                            <ToolTip x:Name="TopSlotTip" Content="{Binding TopSlot.Tooltip}" />
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+
+                    <!-- 下方监控槽位（原“发电功率”） -->
+                    <c:SvgText X="195" Y="905" FontSize="28" Anchor="Middle" Fill="#333333" FontWeight="SemiBold"
+                               FontFamily="Microsoft YaHei UI, Microsoft YaHei, Arial"
+                               MaxTextWidth="164" MinFontSize="18"
+                               Text="{Binding BottomSlot.Title}" />
+                    <c:SlotValueText X="297" Y="912" Anchor="Start" AvailableWidth="203"
+                                     ValueText="{Binding BottomSlot.Value}" UnitText="{Binding BottomSlot.Unit}"
+                                     StatusText="{Binding BottomSlot.Status}" IsStale="{Binding BottomSlot.IsStale}" />
+                    <Rectangle x:Name="BottomSlotHit" Canvas.Left="107" Canvas.Top="850" Width="403" Height="85" Fill="Transparent">
+                        <Rectangle.ToolTip>
+                            <ToolTip x:Name="BottomSlotTip" Content="{Binding BottomSlot.Tooltip}" />
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+
+                    <!-- “电能报告”胶囊 + 三点：真正的 WPF Button，位置与参考页一致（40.09%, 41.61%, 18.59%×3.32%） -->
+                    <Button x:Name="ReportButton" Canvas.Left="427" Canvas.Top="439" Width="198" Height="35"
+                            Style="{StaticResource ReportCapsuleStyle}"
+                            AutomationProperties.Name="电能报告，打开监控设置"
+                            Click="ReportButton_Click">
+                        <Button.ToolTip>
+                            <ToolTip x:Name="ReportTip" Content="监控设置" />
+                        </Button.ToolTip>
+                    </Button>
+                </Canvas>
+            </Canvas>
+        </Viewbox>
+
+        <!-- 由 ApplySize 对齐上方监控条；位于 Viewbox 外，点击尺寸不随缩放变化。 -->
+        <Button x:Name="CloseButton" Style="{StaticResource CloseButtonStyle}"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                AutomationProperties.Name="退出 EndfieldMonitor"
+                Click="CloseButton_Click">
+            <Button.ToolTip>
+                <ToolTip x:Name="CloseTip" Content="退出" />
+            </Button.ToolTip>
+        </Button>
+
+        <!-- 三点设置面板 -->
+        <Popup x:Name="SettingsPopup"
+               PlacementTarget="{Binding ElementName=ReportButton}"
+               Placement="Custom"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="None"
+               Focusable="False"
+               KeyboardNavigation.TabNavigation="Cycle"
+               Opened="SettingsPopup_Opened"
+               Closed="SettingsPopup_Closed">
+            <v:SettingsView x:Name="SettingsPanel" Margin="0,4,10,14" CloseRequested="SettingsPanel_CloseRequested" />
+        </Popup>
+    </Grid>
+</Window>
